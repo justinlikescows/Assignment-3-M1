@@ -1,0 +1,7 @@
+
+    Final Index Report
+    ------------------
+    Number of Documents: 55393
+    Number of Unique Tokens: 1111178
+    Total Size on Disk: 446282.88 KB
+    
