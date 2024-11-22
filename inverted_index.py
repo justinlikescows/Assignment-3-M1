@@ -1,41 +1,50 @@
-from posting import Posting 
+import os
+import json
+import re
+from collections import defaultdict
+import html
 class InvertedIndex:
     def __init__(self):
-        self.index = {}
+        self.index = defaultdict(list)
+        self.documents = {}
+    
+    def add_document(self, doc_id, content):
+        words = self.tokenize(content)
+        term_freq = defaultdict(int)
+        for word in words:
+            term_freq[word] += 1
+        self.documents[doc_id] = len(words)
+        for word, freq in term_freq.items():
+            self.index[word].append({'doc_id': doc_id, 'term_frequency': freq})
 
-    def add_posting(self, token, doc_id):
-        """
-        Adds a posting to the inverted index for a specific token and document ID.
+    def tokenize(self, text):
+        text = html.unescape(text)  # Handle HTML entities
+        text = re.sub(r'<[^>]+>', '', text)  # Remove HTML tags
+        words = re.findall(r'\b\w+\b', text.lower())  # Extract words
+        return words
+    
+    def save_index(self, filepath):
+        with open(filepath, 'w') as f:
+            json.dump({'index': self.index, 'documents': self.documents}, f)
+    
+    def load_index(self, filepath):
+        with open(filepath, 'r') as f:
+            data = json.load(f)
+            self.index = defaultdict(list, data['index'])
+            self.documents = data['documents']
 
-        Args:
-            token (str): The token for which the posting needs to be added or updated.
-            doc_id (int): The document ID where the token was found.
-        """
-        if token not in self.index:
-            self.index[token] = []
-        posting = next((p for p in self.index[token] if p.doc_id == doc_id), None)
-        if posting:
-            posting.term_freq += 1  # Increment term frequency
-        else:
-            new_posting = Posting(doc_id, term_freq=1)
-            self.index[token].append(new_posting)
+def build_inverted_index(root_dir):
+    inverted_index = InvertedIndex()
+    for root, _, files in os.walk(root_dir):
+        for file in files:
+            if file.endswith('.json'):
+                file_path = os.path.join(root, file)
+                with open(file_path, 'r') as f:
+                    print(f'Opened {file_path}')
+                    data = json.load(f)
+                    doc_id = os.path.relpath(file_path, root_dir)
+                    content = data.get('content', '')
+                    inverted_index.add_document(doc_id, content)
+                    print(f'Closed {file_path}')
 
-    def serialize_to_file(self, filename):
-        """
-        Serializes the entire inverted index to a JSON file.
-
-        Args:
-            filename (str): The name of the file where the index should be saved.
-
-        """
-        import json
-        # Convert Posting objects to a serializable format
-        serializable_index = {
-            token: [
-                {'doc_id': p.doc_id, 'term_freq': p.term_freq}
-                for p in postings
-            ]
-            for token, postings in self.index.items()
-        }
-        with open(filename, 'w') as file:
-            json.dump(serializable_index, file)
+    return inverted_index
