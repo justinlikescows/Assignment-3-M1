@@ -3,6 +3,7 @@ import json
 import re
 from collections import defaultdict
 import html
+
 class InvertedIndex:
     def __init__(self):
         self.index = defaultdict(list)
