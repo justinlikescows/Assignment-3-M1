@@ -19,7 +19,7 @@ def save_analytics(index, index_path, analytics_path):
 
 def main():
     base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    data_folder = os.path.join(base_path, 'ASSIGNMENT-3-M2/DEV')
+    data_folder = os.path.join(base_path, 'ASSIGNMENT-3-M3/DEV')
     index_output_path = "inverted_index.json"
     analytics_output_path = "report.txt"
     
