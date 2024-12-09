@@ -25,6 +25,7 @@ def main():
     
     # Build and save the inverted index
     inverted_index = build_inverted_index(data_folder)
+    inverted_index.finalize_index()
     inverted_index.save_index(index_output_path)
     
     # Save analytics to a text file
