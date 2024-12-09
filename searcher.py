@@ -1,6 +1,7 @@
+import streamlit as st
 import json
-from collections import defaultdict
 import os
+from collections import defaultdict
 
 class Searcher:
     def __init__(self, index_file):
@@ -57,33 +58,33 @@ class Searcher:
         return top_5_urls
 
 
+# Cache the searcher instance
+@st.cache_resource
+def get_searcher(index_file):
+    return Searcher(index_file)
+
 
 def main():
-    print('Loading searcher, may take up to 1 minute...')
+    st.title("Search Engine Interface")
+
     index_file = "inverted_index.json"
-    searcher = Searcher(index_file)
+    searcher = get_searcher(index_file)  # Cached instance
 
-    print("Welcome to the Searcher!")
-    print("Type your query below. Type 'exit' to quit.")
-
-    while True:
-        query = input("\nQuery: ")
-        if query == "":
-            print('Please enter a query.')
-            continue
-        if query.lower() == "exit":
-            print("Exiting the Searcher. Goodbye!")
-            break
-
-        results = searcher.search(query)
-        if results:
-            print("Top 5 Results:")
-            for i, url in enumerate(results, start=1):
-                print(f"{i}. {url}")
+    query = st.text_input("Enter your query:", "")
+    if st.button("Search"):
+        if not query.strip():
+            st.warning("Please enter a valid query.")
         else:
-            print("No results found. Try another query.")
+            results = searcher.search(query)
+            if results:
+                st.subheader("Top 5 Results:")
+                for i, url in enumerate(results, start=1):
+                    st.write(f"{i}. ({url})")
+            else:
+                st.info("No results found. Try another query.")
 
 
 if __name__ == "__main__":
     main()
+
 
